@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useAppointments } from "@/hooks/use-appointments";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Check, Calendar, Clock } from "lucide-react";
+import { Check, Calendar, Clock, FileText } from "lucide-react";
 
 interface BookingFormProps {
   selectedDate: Date | undefined;
@@ -24,6 +25,7 @@ export function BookingForm({
 }: BookingFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   
@@ -53,6 +55,7 @@ export function BookingForm({
           time: selectedTime,
           name,
           email,
+          notes,
         });
         
         setIsConfirmed(true);
@@ -61,6 +64,7 @@ export function BookingForm({
         setTimeout(() => {
           setIsSubmitting(false);
           setIsConfirmed(false);
+          setNotes(""); // Clear notes for next booking
           onBookingComplete();
           
           toast({
@@ -133,6 +137,20 @@ export function BookingForm({
             onChange={(e) => setEmail(e.target.value)}
             required
             className="bg-white/50 dark:bg-gray-800/50"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <FileText className="h-4 w-4 mr-2 text-primary" />
+            <Label htmlFor="notes">Special Requirements or Notes</Label>
+          </div>
+          <Textarea
+            id="notes"
+            placeholder="Any special requirements or notes for your appointment..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="bg-white/50 dark:bg-gray-800/50 min-h-[100px]"
           />
         </div>
         

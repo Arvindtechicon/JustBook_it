@@ -1,7 +1,7 @@
 
 import { useAppointments } from "@/hooks/use-appointments";
 import { format, parseISO, isAfter, isFuture } from "date-fns";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, FileText } from "lucide-react";
 
 export function RecentAppointments() {
   const { appointments } = useAppointments();
@@ -48,6 +48,15 @@ export function RecentAppointments() {
                 <p className="text-xs text-muted-foreground">{appointment.email}</p>
               </div>
             </div>
+            
+            {appointment.notes && (
+              <div className="mt-3 pt-3 border-t border-foreground/10">
+                <div className="flex items-start">
+                  <FileText className="h-4 w-4 mr-2 mt-0.5 text-primary-foreground/70" />
+                  <p className="text-xs italic">{appointment.notes}</p>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

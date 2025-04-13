@@ -3,23 +3,37 @@ import { useState } from "react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, isToday, isSameMonth, isBefore, startOfDay } from "date-fns";
+import { format, isToday, isSameMonth, isBefore, startOfDay, parse } from "date-fns";
 import { useAppointments } from "@/hooks/use-appointments";
 
 interface CalendarViewProps {
   selectedDate: Date | undefined;
   onSelect: (date: Date | undefined) => void;
   className?: string;
+  isAdminMode?: boolean;
 }
 
-export function CalendarView({ selectedDate, onSelect, className }: CalendarViewProps) {
+export function CalendarView({ 
+  selectedDate, 
+  onSelect, 
+  className,
+  isAdminMode = false 
+}: CalendarViewProps) {
   const [month, setMonth] = useState<Date>(new Date());
-  const { getAppointmentsByDate } = useAppointments();
+  const { getAppointmentsByDate, isDateBlocked, blockDate, unblockDate } = useAppointments();
   
-  // Disable dates in the past and those with no available appointments
+  // Disable dates in the past and those that are blocked (unless in admin mode)
   const disabledDays = (date: Date) => {
     const today = startOfDay(new Date());
-    return isBefore(date, today);
+    const dateStr = format(date, "yyyy-MM-dd");
+    
+    // In admin mode, we don't disable any dates (admin can block/unblock any date)
+    if (isAdminMode) {
+      return false;
+    }
+    
+    // For regular users, disable past dates and blocked dates
+    return isBefore(date, today) || isDateBlocked(dateStr);
   };
 
   // Check if a date has available appointments
@@ -28,6 +42,25 @@ export function CalendarView({ selectedDate, onSelect, className }: CalendarView
     const appointments = getAppointmentsByDate(dateString);
     // We're mocking availability - in a real app, you'd check against available slots
     return true; // For demo, we'll assume all future dates have available appointments
+  };
+
+  // Handle date click in admin mode (toggle block/unblock)
+  const handleAdminDateClick = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    if (isDateBlocked(dateStr)) {
+      unblockDate(dateStr);
+    } else {
+      blockDate(dateStr);
+    }
+  };
+
+  // Function to create date class names
+  const getDayClassName = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    if (isDateBlocked(dateStr)) {
+      return "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 line-through";
+    }
+    return "";
   };
 
   return (
@@ -61,7 +94,13 @@ export function CalendarView({ selectedDate, onSelect, className }: CalendarView
       <CalendarComponent
         mode="single"
         selected={selectedDate}
-        onSelect={onSelect}
+        onSelect={(date) => {
+          if (isAdminMode) {
+            if (date) handleAdminDateClick(date);
+          } else {
+            onSelect(date);
+          }
+        }}
         month={month}
         onMonthChange={setMonth}
         disabled={disabledDays}
@@ -71,12 +110,23 @@ export function CalendarView({ selectedDate, onSelect, className }: CalendarView
           day_selected: "bg-booking-purple !text-primary-foreground hover:bg-booking-purple hover:text-primary-foreground focus:bg-booking-purple focus:text-primary-foreground",
         }}
         modifiers={{
-          available: (date) => !disabledDays(date) && hasAppointments(date)
+          available: (date) => !disabledDays(date) && hasAppointments(date),
+          blocked: (date) => {
+            const dateStr = format(date, "yyyy-MM-dd");
+            return isDateBlocked(dateStr);
+          }
         }}
         modifiersClassNames={{
-          available: "border-2 border-transparent hover:border-booking-blue rounded-md"
+          available: "border-2 border-transparent hover:border-booking-blue rounded-md",
+          blocked: "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 line-through"
         }}
       />
+      
+      {isAdminMode && (
+        <div className="mt-2 px-3 pb-3 text-xs text-muted-foreground">
+          <p>Click on dates to block/unblock them. Blocked dates will not be available for booking.</p>
+        </div>
+      )}
     </div>
   );
 }

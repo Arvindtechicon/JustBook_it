@@ -16,13 +16,13 @@ import {
   NavigationMenuLink,
   navigationMenuTriggerStyle
 } from "@/components/ui/navigation-menu";
-import { Calendar, Clock, History, User, Plus } from "lucide-react";
+import { Calendar, Clock, History, User, Plus, LockIcon } from "lucide-react";
 
 export function AppointmentBooking() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [step, setStep] = useState<"date" | "time" | "form">("date");
-  const [activeTab, setActiveTab] = useState<"book" | "history" | "profile">("book");
+  const [activeTab, setActiveTab] = useState<"book" | "history" | "profile" | "admin">("book");
   
   // Reset selections when changing steps
   useEffect(() => {
@@ -91,6 +91,15 @@ export function AppointmentBooking() {
                   >
                     <User className="mr-2 h-4 w-4" />
                     Profile
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink 
+                    className={navigationMenuTriggerStyle() + (activeTab === "admin" ? " bg-accent" : "")}
+                    onClick={() => setActiveTab("admin")}
+                  >
+                    <LockIcon className="mr-2 h-4 w-4" />
+                    Admin
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               </NavigationMenuList>
@@ -181,6 +190,56 @@ export function AppointmentBooking() {
             <div className="grid gap-8 md:grid-cols-2">
               <UserProfile />
               <div className="space-y-6">
+                <RecentAppointments />
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "admin" && (
+          <>
+            <div className="text-center mb-8 animate-fade-in">
+              <h2 className="text-3xl font-bold mb-2">Admin Panel</h2>
+              <p className="text-muted-foreground">
+                Manage blocked dates and view system settings
+              </p>
+            </div>
+            
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="glass-card p-6 animate-fade-in">
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <LockIcon className="mr-2 h-5 w-5" />
+                  Blocked Dates Management
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Click on dates in the calendar to block or unblock them for appointments.
+                  Blocked dates will not be available for customers to book.
+                </p>
+                
+                <div className="glass-card animate-slide-in">
+                  <CalendarView
+                    selectedDate={undefined}
+                    onSelect={() => {}}
+                    isAdminMode={true}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="glass-card p-6 animate-fade-in">
+                  <h3 className="text-xl font-semibold mb-4">Administrator Access</h3>
+                  <p className="text-sm mb-4">
+                    This is a demo admin panel. In a real application, this would be protected
+                    by authentication and only accessible to administrators.
+                  </p>
+                  <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 p-3 rounded-lg text-sm">
+                    <p className="font-medium">Note: Demo Mode</p>
+                    <p className="text-xs mt-1">
+                      All changes made here are stored in localStorage for demonstration purposes only.
+                    </p>
+                  </div>
+                </div>
+                
                 <RecentAppointments />
               </div>
             </div>
