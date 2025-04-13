@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { useAppointments } from "@/hooks/use-appointments";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { Check, Calendar, Clock } from "lucide-react";
 
 interface BookingFormProps {
   selectedDate: Date | undefined;
@@ -30,6 +30,15 @@ export function BookingForm({
   const { addAppointment } = useAppointments();
   const { toast } = useToast();
   
+  // Load saved user data from profile
+  useEffect(() => {
+    const savedName = localStorage.getItem("userName");
+    const savedEmail = localStorage.getItem("userEmail");
+    
+    if (savedName) setName(savedName);
+    if (savedEmail) setEmail(savedEmail);
+  }, []);
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedTime) return;
@@ -50,8 +59,6 @@ export function BookingForm({
         
         // Show confirmation for a moment before resetting
         setTimeout(() => {
-          setName("");
-          setEmail("");
           setIsSubmitting(false);
           setIsConfirmed(false);
           onBookingComplete();
@@ -73,55 +80,69 @@ export function BookingForm({
   };
   
   if (!selectedDate || !selectedTime) {
-    return null;
+    return (
+      <div className={cn("glass-card p-6", className)}>
+        <div className="text-center py-8">
+          <h3 className="text-xl font-semibold mb-2">Complete Your Booking</h3>
+          <p className="text-muted-foreground">Please select a date and time first</p>
+        </div>
+      </div>
+    );
   }
   
   return (
     <div className={cn("glass-card p-6", className, isConfirmed ? "relative overflow-hidden" : "")}>
       <h3 className="text-xl font-semibold mb-4">Complete Your Booking</h3>
       
-      <div className="mb-4 p-3 booking-gradient-light rounded-lg dark:bg-gray-800">
-        <p className="font-medium">
-          <span className="block text-sm opacity-80">Date & Time</span>
-          {format(selectedDate, "MMMM d, yyyy")} at {selectedTime}
-        </p>
+      <div className="mb-4 p-4 booking-gradient-light rounded-lg">
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <Calendar className="h-4 w-4 mr-2 text-primary" />
+            <span className="text-sm font-medium">Date</span>
+          </div>
+          <p className="font-semibold ml-6">{format(selectedDate, "MMMM d, yyyy")}</p>
+          
+          <div className="flex items-center mt-2">
+            <Clock className="h-4 w-4 mr-2 text-primary" />
+            <span className="text-sm font-medium">Time</span>
+          </div>
+          <p className="font-semibold ml-6">{selectedTime}</p>
+        </div>
       </div>
       
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Your Name</Label>
-            <Input
-              id="name"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="bg-white/50 dark:bg-gray-800/50"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-white/50 dark:bg-gray-800/50"
-            />
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full booking-gradient"
-            disabled={isSubmitting || isConfirmed}
-          >
-            {isSubmitting ? "Confirming..." : "Confirm Booking"}
-          </Button>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Your Name</Label>
+          <Input
+            id="name"
+            placeholder="John Doe"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="bg-white/50 dark:bg-gray-800/50"
+          />
         </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="bg-white/50 dark:bg-gray-800/50"
+          />
+        </div>
+        
+        <Button 
+          type="submit" 
+          className="w-full booking-gradient"
+          disabled={isSubmitting || isConfirmed}
+        >
+          {isSubmitting ? "Confirming..." : "Confirm Booking"}
+        </Button>
       </form>
       
       {isConfirmed && (
