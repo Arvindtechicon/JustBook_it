@@ -249,6 +249,7 @@ export function AppointmentBooking() {
       
       <footer className="py-6 px-6 text-center text-sm text-muted-foreground">
         <p>© 2025 Appointment Booking System. All rights reserved.</p>
+        <p className="mt-2">Created by <span className="font-medium">Aravind S Gudi</span></p>
       </footer>
     </div>
   );
